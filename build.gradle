@@ -58,8 +58,8 @@ publishing {
 }
 
 pluginBundle {
-    website = '<substitute your project website>'
-    vcsUrl = '<uri to project source repository>'
+    website = 'https://github.com/Comcast/resourceprovider2'
+    vcsUrl = 'https://github.com/Comcast/resourceprovider2'
     tags = ['android', 'gradle', 'resources', 'kotlin', 'mvp']
 }
 
@@ -68,7 +68,7 @@ gradlePlugin {
         resourceProviderPlugin {
             id = 'com.xfinity.resourceprovider'
             displayName = 'Resource Provider'
-            description = 'MVP String ResourceProvider API Generator for Android'
+            description = 'Resource Management API Generator for Android'
             implementationClass = 'com.xfinity.resourceprovider.ResourceProviderPlugin'
         }
     }

@@ -22,11 +22,12 @@ class ResourceProviderPlugin : Plugin<Project> {
                 val processResourcesTask = project.tasks.getByName("process${variant.name.capitalize()}Resources")
                 val rpTask = it.task("generate${variant.name.capitalize()}ResourceProvider") {
                     it.doLast {
-                        generateResourceProviderForVariant(project, extension, variant.name.capitalize())
+                        generateResourceProviderForVariant(project, extension, variant.name.decapitalize())
                     }
                 }.dependsOn(processResourcesTask)
 
-                val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variant.name}"
+                val variantNamePathComponent = variant.name.decapitalize()
+                val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
                 variant.registerJavaGeneratingTask(rpTask, File(outputDir))
                 val kotlinCompileTask = it.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
                 if (kotlinCompileTask != null) {

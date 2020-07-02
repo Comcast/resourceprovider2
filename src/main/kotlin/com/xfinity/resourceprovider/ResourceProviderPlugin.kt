@@ -7,6 +7,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.StringTokenizer
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.tasks.SourceTask
 
 class ResourceProviderPlugin : Plugin<Project> {
@@ -36,11 +38,43 @@ class ResourceProviderPlugin : Plugin<Project> {
                     kotlinCompileTask.source(srcSet)
                 }
             }
+
+            val libraryExtension = project.extensions.findByType(LibraryExtension::class.java)
+            libraryExtension?.libraryVariants?.all { variant ->
+                if (extension.packageName == null) {
+                    extension.packageName = variant.applicationId
+                }
+
+                val processResourcesTask = project.tasks.getByName("generate${variant.name.capitalize()}RFile")
+                val rpTask = it.task("generate${variant.name.capitalize()}ResourceProvider") {
+                    it.doLast {
+                        generateResourceProviderForVariant(project, extension, variant.name.decapitalize(), isLibrary = true)
+                    }
+                }.dependsOn(processResourcesTask)
+
+                val variantNamePathComponent = variant.name.decapitalize()
+                val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
+                variant.registerJavaGeneratingTask(rpTask, File(outputDir))
+                val kotlinCompileTask = it.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
+                if (kotlinCompileTask != null) {
+                    kotlinCompileTask.dependsOn(rpTask)
+                    val srcSet = it.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(outputDir)
+                    kotlinCompileTask.source(srcSet)
+                }
+            }
+        }
+
+        fun processwVariant(variant: BaseVariant) {
+
         }
     }
 
-    private fun generateResourceProviderForVariant(project: Project, extension: ResourceProviderPluginExtension, variantName: String) {
-        val rClassDir = File(project.buildDir.toString() + "/intermediates/compile_and_runtime_not_namespaced_r_class_jar/$variantName/")
+    private fun generateResourceProviderForVariant(project: Project, extension: ResourceProviderPluginExtension,
+                                                   variantName: String, isLibrary: Boolean = false) {
+        val rClassParentDir = if (isLibrary) "compile_only_not_namespaced_r_class_jar" else
+            "compile_and_runtime_not_namespaced_r_class_jar"
+
+        val rClassDir = File(project.buildDir.toString() + "/intermediates/$rClassParentDir/$variantName/")
         project.exec {
             it.workingDir = rClassDir
             it.executable = "unzip"
@@ -66,8 +100,8 @@ class ResourceProviderPlugin : Plugin<Project> {
             } catch (e: Exception) {
                 System.out.println("Creating directory $outputDir failed with ${e.message}")
             }
-            resourceProviderFactory.buildResourceProvider(it, variantName, project.buildDir.toString(), outputDir,
-                    directives)
+            resourceProviderFactory.buildResourceProvider(it, variantName, project.buildDir.toString(), rClassParentDir,
+                    outputDir, directives)
         }
     }
 
@@ -87,14 +121,14 @@ open class ResourceProviderPluginExtension {
 }
 
 class ResourceProviderFactory {
-    fun buildResourceProvider(packageName: String, variantName: String, buildDirectory: String, outputDirectory: String,
-                              directives: RpDirectives) {
-        val rpCodeGenerator = RpCodeGenerator(packageName, parseRClassInfoFile(buildDirectory, variantName), outputDirectory)
+    fun buildResourceProvider(packageName: String, variantName: String, buildDirectory: String, parentDir: String,
+                              outputDirectory: String, directives: RpDirectives) {
+        val rpCodeGenerator = RpCodeGenerator(packageName, parseRClassInfoFile(buildDirectory, parentDir, variantName), outputDirectory)
         rpCodeGenerator.generateCode(directives)
     }
 
-    private fun parseRClassInfoFile(buildDirectory: String, variantName: String): RClassInfo {
-        val rClassInfo = File("$buildDirectory/intermediates/compile_and_runtime_not_namespaced_r_class_jar/${variantName}/rclass.txt").readText()
+    private fun parseRClassInfoFile(buildDirectory: String, parentDir: String, variantName: String): RClassInfo {
+        val rClassInfo = File("$buildDirectory/intermediates/$parentDir/${variantName}/rclass.txt").readText()
         val tokenizer = StringTokenizer(rClassInfo, "$")
 
         val rClassStringVars = mutableListOf<String>()
@@ -124,16 +158,19 @@ class ResourceProviderFactory {
             }
         }
 
-//        println("Strings vars: ${rClassStringVars.toString()}")
+        println("\n\n\nStrings vars: ${rClassStringVars.toString()}\n\n\n")
         return RClassInfo(rClassStringVars, rClassPluralVars, rClassDrawableVars, rClassDimenVars, rClassIntegerVars, rClassColorVars, rClassIdVars)
     }
 
     private fun parseClass(classString: String, varsList: MutableList<String>) {
+        val isLibrary = classString.contains(LIB_VAR_PREFIX)
         val varTokenizer = StringTokenizer(classString, ";")
         val rawVarsList = mutableListOf<String>()
+        val varPrefix = if (isLibrary) LIB_VAR_PREFIX else APP_VAR_PREFIX
+
         while (varTokenizer.hasMoreTokens()) {
             val varToken = varTokenizer.nextToken()
-            val varName = varToken.substringAfter(VAR_PREFIX, MISSING).trim(';')
+            val varName = varToken.substringAfter(varPrefix, MISSING).trim(';')
             if (varName != MISSING) {
                 rawVarsList.add(varName)
             }
@@ -149,7 +186,8 @@ class ResourceProviderFactory {
         const val INT_PREFIX = "integer {"
         const val COLOR_PREFIX = "color {"
         const val ID_PREFIX = "id {"
-        const val VAR_PREFIX = "public static final int "
+        const val APP_VAR_PREFIX = "public static final int "
+        const val LIB_VAR_PREFIX = "public static int "
         const val MISSING = "missing"
     }
 }

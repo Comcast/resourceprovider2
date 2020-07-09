@@ -17,55 +17,42 @@ class ResourceProviderPlugin : Plugin<Project> {
         project.afterEvaluate {
             val appExtension = project.extensions.findByType(AppExtension::class.java)
             appExtension?.applicationVariants?.all { variant ->
-                if (extension.packageName == null) {
-                    extension.packageName = variant.applicationId
-                }
-                
-                val processResourcesTask = project.tasks.getByName("process${variant.name.capitalize()}Resources")
-                val rpTask = it.task("generate${variant.name.capitalize()}ResourceProvider") {
-                    it.doLast {
-                        generateResourceProviderForVariant(project, extension, variant.name.decapitalize())
-                    }
-                }.dependsOn(processResourcesTask)
-
-                val variantNamePathComponent = variant.name.decapitalize()
-                val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
-                variant.registerJavaGeneratingTask(rpTask, File(outputDir))
-                val kotlinCompileTask = it.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
-                if (kotlinCompileTask != null) {
-                    kotlinCompileTask.dependsOn(rpTask)
-                    val srcSet = it.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(outputDir)
-                    kotlinCompileTask.source(srcSet)
-                }
+                setupTasksForVariant(extension, it, variant)
             }
 
             val libraryExtension = project.extensions.findByType(LibraryExtension::class.java)
             libraryExtension?.libraryVariants?.all { variant ->
-                if (extension.packageName == null) {
-                    extension.packageName = variant.applicationId
-                }
-
-                val processResourcesTask = project.tasks.getByName("generate${variant.name.capitalize()}RFile")
-                val rpTask = it.task("generate${variant.name.capitalize()}ResourceProvider") {
-                    it.doLast {
-                        generateResourceProviderForVariant(project, extension, variant.name.decapitalize(), isLibrary = true)
-                    }
-                }.dependsOn(processResourcesTask)
-
-                val variantNamePathComponent = variant.name.decapitalize()
-                val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
-                variant.registerJavaGeneratingTask(rpTask, File(outputDir))
-                val kotlinCompileTask = it.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
-                if (kotlinCompileTask != null) {
-                    kotlinCompileTask.dependsOn(rpTask)
-                    val srcSet = it.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(outputDir)
-                    kotlinCompileTask.source(srcSet)
-                }
+                setupTasksForVariant(extension, it, variant, true)
             }
         }
+    }
 
-        fun processwVariant(variant: BaseVariant) {
+    fun setupTasksForVariant(extension: ResourceProviderPluginExtension, project: Project, variant: BaseVariant,
+                             isLibrary: Boolean = false) {
+        if (extension.packageName == null) {
+            extension.packageName = variant.applicationId
+        }
 
+        val processResourcesTask = if (isLibrary) {
+            project.tasks.getByName("generate${variant.name.capitalize()}RFile")
+        } else {
+            project.tasks.getByName("process${variant.name.capitalize()}Resources")
+        }
+
+        val rpTask = project.task("generate${variant.name.capitalize()}ResourceProvider") {
+            it.doLast {
+                generateResourceProviderForVariant(project, extension, variant.name.decapitalize(), isLibrary)
+            }
+        }.dependsOn(processResourcesTask)
+
+        val variantNamePathComponent = variant.name.decapitalize()
+        val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
+        variant.registerJavaGeneratingTask(rpTask, File(outputDir))
+        val kotlinCompileTask = project.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
+        if (kotlinCompileTask != null) {
+            kotlinCompileTask.dependsOn(rpTask)
+            val srcSet = project.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(outputDir)
+            kotlinCompileTask.source(srcSet)
         }
     }
 

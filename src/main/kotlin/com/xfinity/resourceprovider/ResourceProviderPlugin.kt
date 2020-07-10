@@ -27,8 +27,8 @@ class ResourceProviderPlugin : Plugin<Project> {
         }
     }
 
-    fun setupTasksForVariant(extension: ResourceProviderPluginExtension, project: Project, variant: BaseVariant,
-                             isLibrary: Boolean = false) {
+    private fun setupTasksForVariant(extension: ResourceProviderPluginExtension, project: Project, variant: BaseVariant,
+                                     isLibrary: Boolean = false) {
         if (extension.packageName == null) {
             extension.packageName = variant.applicationId
         }
@@ -145,7 +145,6 @@ class ResourceProviderFactory {
             }
         }
 
-        println("\n\n\nStrings vars: ${rClassStringVars.toString()}\n\n\n")
         return RClassInfo(rClassStringVars, rClassPluralVars, rClassDrawableVars, rClassDimenVars, rClassIntegerVars, rClassColorVars, rClassIdVars)
     }
 

@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.StringTokenizer
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.tasks.SourceTask
@@ -19,10 +20,24 @@ class ResourceProviderPlugin : Plugin<Project> {
             appExtension?.applicationVariants?.all { variant ->
                 setupTasksForVariant(extension, it, variant)
             }
+            addTestSourceSet(project, appExtension)
 
             val libraryExtension = project.extensions.findByType(LibraryExtension::class.java)
             libraryExtension?.libraryVariants?.all { variant ->
                 setupTasksForVariant(extension, it, variant, true)
+            }
+            addTestSourceSet(project, libraryExtension)
+        }
+    }
+
+    private fun addTestSourceSet(project: Project, extension: BaseExtension?) {
+        val testOutputDir = "${project.buildDir}/generated/test/resourceprovider"
+        extension?.sourceSets?.forEach {
+            if (it.name == "test") {
+                val srcDirs = mutableListOf<File>()
+                srcDirs.addAll(it.java.srcDirs)
+                srcDirs.add(File(testOutputDir))
+                it.java.setSrcDirs(srcDirs)
             }
         }
     }
@@ -45,9 +60,35 @@ class ResourceProviderPlugin : Plugin<Project> {
             }
         }.dependsOn(processResourcesTask)
 
+
         val variantNamePathComponent = variant.name.decapitalize()
         val outputDir = "${project.buildDir}/generated/source/resourceprovider/${variantNamePathComponent}"
+        val testOutputDir = "${project.buildDir}/generated/test/resourceprovider"
+
+        val kotlinUnitTestCompileTask = project.tasks.findByName("compile${variant.name.capitalize()}UnitTestKotlin") as? SourceTask
+        val javaUnitTestCompileTask = project.tasks.findByName("compile${variant.name.capitalize()}UnitTestSources") as? SourceTask
+        val testUtilsTask = project.task("generate${variant.name.capitalize()}ResourceProviderTestUtils") {
+            it.doLast {
+                extension.packageName?.let { pName ->
+                    RpKtCodeGenerator().generateTestUtils(pName, true, testOutputDir)
+                }
+            }
+        }.dependsOn(rpTask)
+
+        kotlinUnitTestCompileTask?.let { compileTask ->
+            compileTask.dependsOn(testUtilsTask)
+            val srcSet = project.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(testOutputDir)
+            compileTask.source(srcSet)
+        }
+
+        javaUnitTestCompileTask?.let { compileTask ->
+            compileTask.dependsOn(testUtilsTask)
+            val srcSet = project.objects.sourceDirectorySet("resourceprovider", "resourceprovider").srcDir(testOutputDir)
+            compileTask.source(srcSet)
+        }
+
         variant.registerJavaGeneratingTask(rpTask, File(outputDir))
+
         val kotlinCompileTask = project.tasks.findByName("compile${variant.name.capitalize()}Kotlin") as? SourceTask
         if (kotlinCompileTask != null) {
             kotlinCompileTask.dependsOn(rpTask)

@@ -88,7 +88,7 @@ Or in Kotlin,
    
    ```xml
    plugins {  
-       id 'com.xfinity.resourceprovider' version '1.1.0'
+       id 'com.xfinity.resourceprovider' version '1.3.0'
    }
    ```
    

@@ -1,0 +1,71 @@
+{
+  "axioms": {
+    "linguist":"language",
+    "licensee":"license",
+    "packagers":"packager"
+  },
+  "rules": {
+    "all": {
+      "license-file-exists:file-existence": ["error", {"files": ["LICENSE*", "COPYING*"]}],
+      "notice-file-exists:file-existence": ["error", {"files": ["NOTICE*"], "fail-message": "The NOTICE file is described in section 4.4 of the Apache License version 2.0. Its presence is not mandated by the license itself, but by ASF policy."}],
+      "readme-file-exists:file-existence": ["error", {"files": ["README*"], "nocase": true}],
+      "contributing-file-exists:file-existence": ["error", {"files": ["CONTRIB*"]}],
+      "code-of-conduct-file-exists:file-existence": ["error", {"files": ["CODEOFCONDUCT*", "CODE-OF-CONDUCT*", "CODE_OF_CONDUCT*"]}],
+      "support-file-exists:file-existence": ["info", {"files": ["SUPPORT*"], "nocase": true}],
+      "readme-references-license:file-contents": ["error", {"files": ["README*"], "content": "license", "flags": "i"}],
+      "binaries-not-present:file-type-exclusion": ["warning", {"type": ["**/*.exe", "**/*.dll", "!node_modules/**"]}],
+      "test-directory-exists:directory-existence": ["info", {"directories": ["**/test*", "**/specs"], "nocase": true}],
+      "integrates-with-ci:file-existence": [
+        "info",
+        {
+          "files": [".gitlab-ci.yml", ".travis.yml", "appveyor.yml", ".appveyor.yml", "circle.yml", ".circleci/config.yml", "Jenkinsfile", ".drone.yml"]
+        }
+      ],
+      "code-of-conduct-file-contains-email:file-contents": [
+        "error",
+        {
+          "files": ["CODEOFCONDUCT*", "CODE-OF-CONDUCT*", "CODE_OF_CONDUCT*"],
+          "content": ".+@.+\\..+",
+          "flags": "i",
+          "human-readable-content": "email address"
+        }
+      ],
+      "source-license-headers-exist:file-starts-with": ["error", {"files": ["**/*.js", "!node_modules/**"], "lineCount": 5, "patterns": ["Copyright", "License"], "flags": "i"}],
+      "github-issue-template-exists:file-existence": ["info", {"files": ["ISSUE_TEMPLATE*", ".github/ISSUE_TEMPLATE*"]}],
+      "github-pull-request-template-exists:file-existence": ["info", {"files": ["PULL_REQUEST_TEMPLATE*", ".github/PULL_REQUEST_TEMPLATE*"]}]
+    },
+    "language=javascript": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["package.json"]}]
+    },
+    "language=ruby": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["Gemfile"]}]
+    },
+    "language=java": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["pom.xml", "build.xml", "build.gradle", "build.gradle.kts"]}]
+    },
+    "language=kotlin": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["pom.xml", "build.xml", "build.gradle", "build.gradle.kts"]}]
+    },
+    "license=*": {
+      "license-detectable-by-licensee": ["info"]
+    },
+    "license=Apache-2.0": {
+      "notice-file-exists:apache-notice": ["error"]
+    },
+    "language=python": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["setup.py", "requirements.txt"]}]
+    },
+    "language=objective-c": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["Cartfile", "Podfile", "*.podspec"]}]
+    },
+    "language=swift": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["Package.swift"]}]
+    },
+    "language=erlang": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["rebar.config"]}]
+    },
+    "language=elixir": {
+      "package-metadata-exists:file-existence": ["error", {"files": ["mix.exs"]}]
+    }
+  }
+}

@@ -105,8 +105,8 @@ class ResourceProviderPlugin : Plugin<Project> {
         val rClassDir = File(project.buildDir.toString() + "/intermediates/$rClassParentDir/$variantName/")
         project.exec {
             it.workingDir = rClassDir
-            it.executable = "unzip"
-            it.args = listOf("R.jar")
+            it.executable = "jar"
+            it.args = listOf("xf", "R.jar")
             it.isIgnoreExitValue = true
         }
 

@@ -116,3 +116,8 @@ Command is available on your environment's PATH.  The plugin uses this command t
  ResourceProvider will, also by default, generate a provider class with APIs to get all the resource types mentioned above, and integer IDs of all the supported resource types.  
  Since this will add a large number of APIs to the method count of your app, you can disable generation of any of the Provider Classes by configuring a closure in the
  build.gradle file.  See the example above for configuration of specific providers.
+ 
+Samples and Test Utilites
+  ======================  
+  
+A sample android application project and library project are available [here](https://github.com/Comcast/resourceprovider-utils/), in addition to the testutils library, which generates mocking functions for units testing resource provider classes and methods. The repo also contains samples for writing such tests.

@@ -11,6 +11,7 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.tasks.SourceTask
+import java.io.ByteArrayOutputStream
 
 class ResourceProviderPlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -103,6 +104,7 @@ class ResourceProviderPlugin : Plugin<Project> {
             "compile_and_runtime_not_namespaced_r_class_jar"
 
         val rClassDir = File(project.buildDir.toString() + "/intermediates/$rClassParentDir/$variantName/")
+        project.logger.info("\n\nResourceProvider: Inflating R.jar\n")
         project.exec {
             it.workingDir = rClassDir
             it.executable = "jar"
@@ -110,10 +112,25 @@ class ResourceProviderPlugin : Plugin<Project> {
             it.isIgnoreExitValue = true
         }
 
-        project.exec {
-            it.workingDir = rClassDir
-            it.commandLine = listOf("bash", "-c", "find ${rClassDir.absolutePath} -name '*.class' | xargs javap -p > rclass.txt")
+        val rclassTxtFile = File("${rClassDir.absolutePath}/rclass.txt")
+        val outputFileWriter = rclassTxtFile.writer()
+        project.logger.info("\nResourceProvider: Building Resource List\n")
+        rClassDir.walk().sortedBy { it.isFile }.forEach { file ->
+            project.logger.info(file.name)
+            project.logger.info("ResourceProvider: Ingesting ${file.absolutePath}\n")
+            if (file.name.endsWith(".class")) {
+                val outputStream =  ByteArrayOutputStream()
+                project.exec {
+                    it.workingDir = rClassDir
+                    it.commandLine = listOf("javap", "-p", file.absolutePath)
+                    it.standardOutput = outputStream
+                }
+
+                outputFileWriter.write(outputStream.toString())
+            }
         }
+
+        outputFileWriter.close()
 
         extension.packageName?.let {
             val directives = RpDirectives(extension.generateStringProvider, extension.generateDrawableProvider,
@@ -124,9 +141,9 @@ class ResourceProviderPlugin : Plugin<Project> {
 
             try {
                 Files.createDirectories(Paths.get(outputDir))
-                System.out.println("Created directory $outputDir successfully")
+                project.logger.info("ResourceProvider: Created directory $outputDir successfully")
             } catch (e: Exception) {
-                System.out.println("Creating directory $outputDir failed with ${e.message}")
+                project.logger.info("ResourceProvider: Creating directory $outputDir failed with ${e.message}")
             }
             resourceProviderFactory.buildResourceProvider(it, variantName, project.buildDir.toString(), rClassParentDir,
                     outputDir, directives)

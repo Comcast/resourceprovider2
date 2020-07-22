@@ -25,8 +25,6 @@ class RpCodeGenerator(private val packageName: String, private val rClassInfo: R
 
     fun generateCode(directives: RpDirectives) {
         val outputDirectory = File(outputDirectoryName)
-        println("\n\n\nOutput Dir : ${outputDirectory.toString()} \n\n\n")
-
         try {
             val generateIdProvider = rClassInfo.rClassIdVars.isNotEmpty() && directives.generateIdProvider
             if (generateIdProvider) {

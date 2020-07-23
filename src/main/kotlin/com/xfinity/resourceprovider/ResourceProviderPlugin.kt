@@ -114,14 +114,22 @@ class ResourceProviderPlugin : Plugin<Project> {
 
         val rclassTxtFile = File("${rClassDir.absolutePath}/rclass.txt")
         val outputFileWriter = rclassTxtFile.writer()
+
+        var packageResourcesPath = rClassDir.absolutePath
+        StringTokenizer(extension.packageName, ".").toList().forEach {
+            packageResourcesPath += "/$it"
+        }
+
+        val inputDir = if (extension.generateForDependencies) rClassDir else File(packageResourcesPath)
+
         project.logger.info("\nResourceProvider: Building Resource List\n")
-        rClassDir.walk().sortedBy { it.isFile }.forEach { file ->
+        inputDir.walk().sortedBy { it.isFile }.forEach { file ->
             project.logger.info(file.name)
             project.logger.info("ResourceProvider: Ingesting ${file.absolutePath}\n")
             if (file.name.endsWith(".class")) {
                 val outputStream =  ByteArrayOutputStream()
                 project.exec {
-                    it.workingDir = rClassDir
+                    it.workingDir = inputDir
                     it.commandLine = listOf("javap", "-p", file.absolutePath)
                     it.standardOutput = outputStream
                 }
@@ -163,6 +171,7 @@ open class ResourceProviderPluginExtension {
     var generateDimenProvider: Boolean = true
     var generateColorProvider: Boolean = true
     var generateIdProvider: Boolean = true
+    var generateForDependencies: Boolean = false
 }
 
 class ResourceProviderFactory {

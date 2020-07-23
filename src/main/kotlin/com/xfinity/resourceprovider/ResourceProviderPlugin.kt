@@ -245,7 +245,6 @@ data class RClassInfo(val rClassStringVars: List<String>,
                       val rClassIdVars: List<String>)
 
 data class RpDirectives(var generateStringProvider: Boolean = true,
-                        var generatePluralProvider: Boolean = true,
                         var generateDrawableProvider: Boolean = true,
                         var generateIntegerProvider: Boolean = true,
                         var generateDimenProvider: Boolean = true,

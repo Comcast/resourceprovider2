@@ -42,7 +42,7 @@ compileTestKotlin {
 }
 
 group 'com.xfinity'
-version '1.3.2'
+version '1.3.3'
 
 //Local publishing for development purposes
 publishing {

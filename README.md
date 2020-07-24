@@ -95,9 +95,14 @@ Also, you need to make sure that the
 ```
 jar
 ```
-Command is available on your environment's PATH.  The plugin uses this command to inspect the R.jar file's contents.
+and 
+```
+javap
+```
+
+Commands are available on your environment's PATH.  The plugin uses this command to inspect the R.jar file's contents.
    
-  Provider Generation Configs
+  Provider Generation Configs and Defaults
   ======================  
   By default, the classes Resource Provider generates will be created in the top level package of the app.  For instance, if your app id  (specified in your
   build.gradle or AndroidManifest.xml) is "com.my.app", then the resource provider class will  be com.my.app.ResourceProvider.  You can change this in the
@@ -111,11 +116,14 @@ Command is available on your environment's PATH.  The plugin uses this command t
       generateDrawableProvider = false
       generateDimenProvider = false
       generateIdProvider = false
+      generateForDependencies = true
   }
   ```
- ResourceProvider will, also by default, generate a provider class with APIs to get all the resource types mentioned above, and integer IDs of all the supported resource types.  
- Since this will add a large number of APIs to the method count of your app, you can disable generation of any of the Provider Classes by configuring a closure in the
- build.gradle file.  See the example above for configuration of specific providers.
+ ResourceProvider will, also by default, generate a provider class with APIs to get all the resource types mentioned above, and integer IDs of all the supported resource types.  Since this will add a large number of APIs to the method count of your app, you can disable generation of any of the Provider Classes by configuring a closure in the build.gradle file.  
+ 
+In addition, Resource Provider can be configured to generate APIs for all the resources in your app or library, including resources in and dependencies, by setting the generateForDependencies flag to true.  By default, Resource Provider will only generate APIs for the resources in your app or library itself.
+ 
+ See the example above for configuration of specific providers.
  
 Samples and Test Utilites
   ======================  

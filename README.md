@@ -100,7 +100,7 @@ and
 javap
 ```
 
-Commands are available on your environment's PATH.  The plugin uses this command to inspect the R.jar file's contents.
+Commands are available on your environment's PATH.  The plugin uses these commands to inspect the R.jar file's contents.
    
   Provider Generation Configs and Defaults
   ======================  

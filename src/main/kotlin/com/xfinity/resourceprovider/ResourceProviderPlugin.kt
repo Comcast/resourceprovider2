@@ -71,7 +71,7 @@ class ResourceProviderPlugin : Plugin<Project> {
         val testUtilsTask = project.task("generate${variant.name.capitalize()}ResourceProviderTestUtils") {
             it.doLast {
                 extension.packageName?.let { pName ->
-                    RpKtCodeGenerator().generateTestUtils(pName, true, testOutputDir)
+                    RpKtCodeGenerator().generateTestUtils(pName, RpDirectives.fromExtention(extension), testOutputDir)
                 }
             }
         }.dependsOn(rpTask)
@@ -141,9 +141,7 @@ class ResourceProviderPlugin : Plugin<Project> {
         outputFileWriter.close()
 
         extension.packageName?.let {
-            val directives = RpDirectives(extension.generateStringProvider, extension.generateDrawableProvider,
-                    extension.generateIntegerProvider, extension.generateDimenProvider,
-                    extension.generateColorProvider, extension.generateIdProvider)
+            val directives = RpDirectives.fromExtention(extension)
             val resourceProviderFactory = ResourceProviderFactory()
             val outputDir = "${project.buildDir}/generated/source/resourceprovider/$variantName"
 
@@ -258,4 +256,12 @@ data class RpDirectives(var generateStringProvider: Boolean = true,
                         var generateIntegerProvider: Boolean = true,
                         var generateDimenProvider: Boolean = true,
                         var generateColorProvider: Boolean = true,
-                        var generateIdProvider: Boolean = true)
+                        var generateIdProvider: Boolean = true) {
+
+    companion object {
+        fun fromExtention(extension: ResourceProviderPluginExtension): RpDirectives =
+            RpDirectives(extension.generateStringProvider, extension.generateDrawableProvider,
+                    extension.generateIntegerProvider, extension.generateDimenProvider,
+                    extension.generateColorProvider, extension.generateIdProvider)
+    }
+}

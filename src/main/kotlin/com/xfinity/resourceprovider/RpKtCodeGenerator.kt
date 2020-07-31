@@ -7,7 +7,7 @@ import com.squareup.kotlinpoet.FunSpec
 import java.io.File
 
 class RpKtCodeGenerator {
-    fun generateTestUtils(receiverPackageName: String, generateIdsMock: Boolean, outputDirectoryName: String) {
+    fun generateTestUtils(receiverPackageName: String, directives: RpDirectives, outputDirectoryName: String) {
         val resourceProviderClassName = ClassName(receiverPackageName, "ResourceProvider")
         val stringProviderClassName = ClassName(receiverPackageName, "StringProvider")
         val stringProviderAnswerClassName = ClassName("com.xfinity.resourceprovider.testutils", "StringProviderAnswer")
@@ -66,26 +66,56 @@ class RpKtCodeGenerator {
 
         val mockFunSpecBuilder = FunSpec.builder("mock")
                 .receiver(resourceProviderClassName)
-                .addStatement("this.mockStrings()")
-                .addStatement("this.mockDrawables()")
-                .addStatement("this.mockColors()")
-                .addStatement("this.mockDimens()")
-                .addStatement("this.mockIntegers()")
 
-        if (generateIdsMock) {
+        if (directives.generateStringProvider) {
+            mockFunSpecBuilder.addStatement("this.mockStrings()")
+        }
+
+        if (directives.generateDrawableProvider) {
+            mockFunSpecBuilder.addStatement("this.mockDrawables()")
+        }
+
+        if (directives.generateColorProvider) {
+            mockFunSpecBuilder.addStatement("this.mockColors()")
+        }
+
+        if (directives.generateDimenProvider) {
+            mockFunSpecBuilder.addStatement("this.mockDimens()")
+        }
+
+        if (directives.generateIntegerProvider) {
+            mockFunSpecBuilder.addStatement("this.mockIntegers()")
+        }
+
+        if (directives.generateIdProvider) {
             mockFunSpecBuilder.addStatement("this.mockIds()")
         }
 
         val mockFunSpec = mockFunSpecBuilder.build()
 
         val kotlinFileBuilder = FileSpec.builder("com.xfinity.resourceprovider", "ResourceProviderTestUtils")
-                .addFunction(mockStringsFunSpec)
-                .addFunction(mockColorsFunSpec)
-                .addFunction(mockDrawablesFunSpec)
-                .addFunction(mockDimensFunSpec)
-                .addFunction(mockIntegersFunSpec)
 
-        if (generateIdsMock) {
+        if (directives.generateStringProvider) {
+            kotlinFileBuilder.addFunction(mockStringsFunSpec)
+        }
+
+        if (directives.generateDrawableProvider) {
+            kotlinFileBuilder.addFunction(mockDrawablesFunSpec)
+        }
+
+        if (directives.generateColorProvider) {
+            kotlinFileBuilder.addFunction(mockColorsFunSpec)
+        }
+
+        if (directives.generateDimenProvider) {
+            kotlinFileBuilder.addFunction(mockDimensFunSpec)
+        }
+
+        if (directives.generateIntegerProvider) {
+            kotlinFileBuilder .addFunction(mockIntegersFunSpec)
+        }
+
+        if (directives.generateIdProvider) {
             kotlinFileBuilder.addFunction(mockIdsFunSpec)
         }
 

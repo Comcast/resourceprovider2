@@ -129,3 +129,5 @@ Samples and Test Utilites
   ======================  
   
 A sample android application project and library project are available [here](https://github.com/Comcast/resourceprovider-utils/), in addition to the testutils library, which generates mocking functions for units testing resource provider classes and methods. The repo also contains samples for writing such tests.
+
+Specifically, To setup your testing environment, consult [the Setup section of the readme for the project above](https://github.com/Comcast/resourceprovider-utils#setup)

@@ -100,7 +100,9 @@ class ResourceProviderPlugin : Plugin<Project> {
 
     private fun generateResourceProviderForVariant(project: Project, extension: ResourceProviderPluginExtension,
                                                    variantName: String, isLibrary: Boolean = false) {
-        val rClassParentDir = if (isLibrary) "compile_only_not_namespaced_r_class_jar" else
+        project.logger.info("\n\nResourceProvider: isLibrary = $isLibrary\n")
+
+        val rClassParentDir = if (isLibrary) "compile_r_class_jar" else
             "compile_and_runtime_not_namespaced_r_class_jar"
 
         val rClassDir = File(project.buildDir.toString() + "/intermediates/$rClassParentDir/$variantName/")
